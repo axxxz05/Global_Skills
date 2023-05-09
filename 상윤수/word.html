@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>단어게임</title>
+    <link rel="stylesheet" href="/css/word.css" />
+  </head>
+  <body>
+    <div id="wordspace"></div>
+    <footer>
+      <div class="btns">
+        <button id="start">Start</button>
+        <button id="stop">Stop</button>
+        <button id="clear">Clear</button>
+        <button id="speed0">0</button>
+        <button id="speed1">1</button>
+        <button id="speed2">2</button>
+      </div>
+      <div class="inputbox">
+        <input type="text" id="typehere" autofocus />
+      </div>
+      <div class="scorebox">
+        <span>Score : </span>
+        <span id="score">0</span>
+      </div>
+    </footer>
+    <script>
+      let wordspeed = 4000; //밀리세컨드
+      let dropspeed = 10; //픽셀
+      let score = 0;
+      let wordtimer = null;
+      let droptimer = null;
+      let words = []; //빈배열
+
+      //단어을 가져다 배열에 추가하는 함수
+      const getWords = async () => {
+        const url = "https://assets.codepen.io/147406/words.json";
+        const res = await fetch(url);
+        const data = await res.json();
+        return data;
+      };
+      getWords().then((data) => {
+        const json = data.words;
+        json.forEach((w) => {
+          words.push(w);
+        });
+      });
+      let start = document.querySelector("#start");
+      let stop = document.querySelector("#stop");
+      let clear = document.querySelector("#clear");
+      let typehere = document.querySelector("#typehere");
+      let wordspace = document.querySelector("#wordspace");
+      let speed0 = document.querySelector("#speed0");
+      let speed1 = document.querySelector("#speed1");
+      let speed2 = document.querySelector("#speed2");
+
+      const showWord = async () => {
+        if (words.length === 0) {
+          stop.click();
+          return;
+        }
+        //단어배열(words) 랜덤 정렬
+        words.sort(() => Math.random() - 0.5); //랜덤정렬
+        const word = words.pop(); //words에서 하나 꺼내기
+        let span = document.createElement("span");
+        span.classList.add("word");
+        span.style.top = 0;
+        span.innerText = word;
+        let x = Math.floor(
+          (window.innerWidth - 200 - 200) * Math.random() + 200
+        );
+        span.style.left = x + "px";
+        wordspace.appendChild(span);
+      };
+
+      const moveWords = () => {
+        const spans = document.getElementsByClassName("word");
+        for (let i = 0; i < spans.length; i++) {
+          let s = spans[i];
+          let top = s.style.top; //현재 span의 top좌표(문자열)
+          top = parseInt(top, 10);
+          let newtop = top + dropspeed + "px";
+          s.style.top = newtop;
+        }
+      };
+
+      start.addEventListener("click", () => {
+        showWord();
+        wordtimer = setInterval(() => {
+          showWord();
+        }, wordspeed);
+        droptimer = setInterval(() => {
+          moveWords();
+        }, 1000);
+      });
+      stop.addEventListener("click", () => {
+        clearInterval(wordtimer);
+        clearInterval(droptimer);
+      });
+      clear.addEventListener("click", () => {
+        stop.click();
+        wordspace.innerHTML = "";
+        score = 0;
+        wordspeed = 4000;
+        dropspeed = 10;
+        document.querySelector("#score").innerText = 0;
+      });
+      speed0.addEventListener("click", () => {
+        clearInterval(wordtimer);
+        clearInterval(droptimer);
+        wordspeed = 4000;
+        dropspeed = 10;
+        wordtimer = setInterval(() => {
+          showWord();
+        }, wordspeed);
+        droptimer = setInterval(() => {
+          moveWords();
+        }, 1000);
+      });
+
+      speed1.addEventListener("click", () => {
+        clearInterval(wordtimer);
+        clearInterval(droptimer);
+        wordspeed = 2000;
+        dropspeed = 20;
+        wordtimer = setInterval(() => {
+          showWord();
+        }, wordspeed);
+        droptimer = setInterval(() => {
+          moveWords();
+        }, 1000);
+      });
+
+      speed2.addEventListener("click", () => {
+        clearInterval(wordtimer);
+        clearInterval(droptimer);
+        wordspeed = 1000;
+        dropspeed = 30;
+        wordtimer = setInterval(() => {
+          showWord();
+        }, wordspeed);
+        droptimer = setInterval(() => {
+          moveWords();
+        }, 1000);
+      });
+
+      typehere.addEventListener("keyup", (e) => {
+        if (e.keyCode === 13) {
+          let spans = document.getElementsByClassName("word");
+          for (let i = 0; i < spans.length; i++) {
+            let s = spans[i];
+            let w = s.innerText;
+            if (w === e.target.value) {
+              s.remove();
+              score++;
+              document.querySelector("#score").innerText = score;
+              if (score % 10 === 0) {
+                wordspeed = wordspeed * 0.5;
+                dropspeed = dropspeed * 2;
+                stop.click();
+                start.click();
+              }
+            }
+            if (s.style.top >= window.innerHeight - 50) {
+              s.remove();
+            }
+          }
+          e.target.value = "";
+        }
+      });
+    </script>
+  </body>
+</html>

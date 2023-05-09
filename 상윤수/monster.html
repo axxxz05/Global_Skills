@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>몬스터게임</title>
+    <style>
+      canvas {
+        border: 1px solid #111;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      let canvas = document.createElement("canvas");
+      canvas.width = 512;
+      canvas.height = 480;
+      document.body.appendChild(canvas);
+      let ctx = canvas.getContext("2d");
+
+      let bg = new Image();
+      bg.src = "images/background.png";
+      let hero = new Image();
+      hero.src = "images/hero.png";
+      let monster = new Image();
+      monster.src = "images/monster.png";
+
+      bgReady = false;
+      bg.onload = function () {
+        bgReady = true;
+      };
+
+      heroReady = false;
+      hero.onload = function () {
+        heroReady = true;
+      };
+
+      monsterReady = false;
+      monster.onload = function () {
+        monsterReady = true;
+      };
+
+      let h = { speed: 4 }; //히어로 속성(속도, x 및 y좌표)
+      let m = {}; //몬스더 속성(x 및 y좌표)
+      let c = 0; //잡힌 몬스터 갯수
+
+      //히어로, 몬스터 좌표 초기화
+      function reset() {
+        h.x = canvas.width / 2 - 16;
+        h.y = canvas.height / 2 - 16;
+        m.x = Math.random() * (canvas.width - 64);
+        m.y = Math.random() * (canvas.height - 64);
+      }
+
+      //그리기 함수
+      function draw() {
+        if (bgReady) ctx.drawImage(bg, 0, 0);
+        if (heroReady) ctx.drawImage(hero, h.x, h.y);
+        if (monsterReady) ctx.drawImage(monster, m.x, m.y);
+        ctx.fillStyle = "white";
+        ctx.font = "24px Arial";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillText("Moster caught: " + c, 32, 32);
+      }
+      //반복될 게임 함수
+      function game() {
+        draw();
+        update();
+        requestAnimationFrame(game);
+      }
+
+      let keyDown = {};
+      addEventListener("keydown", function (event) {
+        keyDown[event.keyCode] = true;
+      });
+
+      addEventListener("keyup", function (event) {
+        delete keyDown[event.keyCode];
+      });
+
+      //화면을 계속 업데이트(키다운 감지)
+      function update() {
+        if (37 in keyDown && 30 < h.x) {
+          //왼쪽화살표
+          if (h.x < 32) return;
+          h.x = h.x - h.speed;
+        }
+        if (38 in keyDown && 30 < h.y) {
+          //위쪽화살표
+          if (h.y < 32) reset;
+          h.y = h.y - h.speed;
+        }
+        if (39 in keyDown && h.x < canvas.width - 60) {
+          //오른쪽화살표
+          if (h.x > canvas.width - 32) reset;
+          h.x = h.x + h.speed;
+        }
+        if (40 in keyDown && h.y < canvas.height - 60) {
+          //아래쪽화살표
+          if (h.y > canvas.he - 32) reset;
+          h.y = h.y + h.speed;
+        }
+        if (
+          h.x <= m.x + 32 &&
+          m.x <= h.x + 32 &&
+          h.y <= m.y + 32 &&
+          m.y <= h.y + 32
+        ) {
+          c++; //c=c+1
+          reset();
+        }
+      }
+
+      // 몬스터의 x좌표와 y좌표를 랜덤으로 변경하는 함수
+      function moveMonster() {
+        m.x = Math.random() * (canvas.width - 64);
+        m.y = Math.random() * (canvas.height - 64);
+      }
+
+      // 1초마다 moveMonster 함수 호출하여 몬스터 위치 변경
+      setInterval(moveMonster, 10000);
+
+      game();
+      reset();
+    </script>
+  </body>
+</html>
